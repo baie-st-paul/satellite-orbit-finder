@@ -2,8 +2,10 @@
 name = "satelite-orbit-finder"
 version = "0.1.0"
 edition = "2024"
+assets = ["assets"]
 
 [dependencies]
 reqwest ={ version = "0.12.18", features = ["blocking", "cookies"]}
 cookie_store ={ version = "*"}
 dotenv = "0.15.0"
+bevy = "0.13"
