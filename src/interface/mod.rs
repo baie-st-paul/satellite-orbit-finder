@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 use bevy::input::mouse::{MouseWheel, MouseMotion};
 
-fn main() {
+pub fn init_interface() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_startup_system(setup)
-        .add_system(rotate_camera)
-        .add_system(zoom_camera)
+        //.add_startup_system(setup)
+        //.add_system(rotate_camera)
+        //.add_system(zoom_camera)
         .run();
 }
 
@@ -15,7 +15,7 @@ struct Planet;
 
 #[derive(Component)]
 struct MainCamera;
-
+/*
 fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>) {
     // Camera
     commands.spawn((
@@ -68,3 +68,4 @@ fn zoom_camera(
         transform.translation += transform.forward() * ev.y * 0.1;
     }
 }
+*/
