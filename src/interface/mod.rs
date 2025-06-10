@@ -1,71 +1,113 @@
 use bevy::prelude::*;
-use bevy::input::mouse::{MouseWheel, MouseMotion};
 
 pub fn init_interface() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        //.add_startup_system(setup)
-        //.add_system(rotate_camera)
-        //.add_system(zoom_camera)
+        .add_plugins(DefaultPlugins.set(
+            AssetPlugin {
+                watch_for_changes_override: Some(true),
+                ..default()
+            }
+        ))
+        .add_systems(Startup, setup)
+        .add_systems(Main, rotate_earth)
+        .add_systems(Update, orbit_camera)
         .run();
 }
 
 #[derive(Component)]
-struct Planet;
+struct Earth;
 
 #[derive(Component)]
-struct MainCamera;
-/*
-fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>) {
+struct OrbitCamera;
+
+#[derive(Resource)]
+struct CameraState {
+    yaw: f32,
+    pitch: f32,
+    radius: f32,
+    is_dragging: bool,
+}
+
+impl Default for CameraState {
+    fn default() -> Self {
+        Self {
+            yaw: 0.0,
+            pitch: 0.0,
+            radius: 4.0,
+            is_dragging: false,
+        }
+    }
+}
+
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>) {
     // Camera
     commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 2.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
-            ..default()
-        },
-        MainCamera,
+        Camera3d::default(),
+        Transform::from_xyz(-1.5, 3.5, 7.0).looking_at(Vec3::ZERO, Vec3::Y)
     ));
 
     // Light
-    commands.spawn(PointLightBundle {
-        transform: Transform::from_xyz(4.0, 8.0, 4.0),
-        ..default()
-    });
-
-    // Earth Sphere
-    commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Icosphere {
-                radius: 1.0,
-                subdivisions: 64,
-            })),
-            material: materials.add(Color::rgb(0.2, 0.4, 1.0).into()), // You can load texture here
+    commands.spawn((PointLight {
+            shadows_enabled: true,
             ..default()
         },
-        Planet,
+        Transform::from_xyz(4.0, 8.0, 4.0)
     ));
+
+    // Earth sphere
+    let texture = asset_server.load("earth_diffuse.png");
+    let material = MeshMaterial3d(materials.add(StandardMaterial{
+        base_color_texture: Some(texture),
+        perceptual_roughness: 1.0,
+        ..default()
+    }));
+
+    commands.spawn((
+        Mesh3d(meshes.add(Sphere::new(1.0))),
+        material,
+        Transform::from_xyz(0.0, 0.0, 0.0),
+        Earth,
+    ));
+
 }
 
-fn rotate_camera(
-    mut motion_evr: EventReader<MouseMotion>,
-    mouse_button: Res<Input<MouseButton>>,
-    mut query: Query<&mut Transform, With<MainCamera>>,
+fn rotate_earth(mut query: Query<&mut Transform, With<Earth>>, time: Res<Time>) {
+    for mut transform in &mut query {
+        transform.rotate_y(0.2 * time.delta_secs());
+    }
+}
+
+fn orbit_camera(
+    mut mouse_motion_events: EventReader<MouseMotion>,
+    mut mouse_wheel_events: EventReader<MouseWheel>,
+    mouse_button: Res<ButtonInput<MouseButton>>,
+    mut camera_query: Query<&mut Transform, With<OrbitCamera>>,
+    mut state: ResMut<CameraState>,
+    time: Res<Time>,
 ) {
+    let mut camera_transform = camera_query.single_mut();
+
+    // Zoom
+    for event in mouse_wheel_events.read() {
+        state.radius -= event.y * 0.5;
+        state.radius = state.radius.clamp(2.0, 20.0);
+    }
+
+    // Mouse drag to rotate
     if mouse_button.pressed(MouseButton::Left) {
-        let delta = motion_evr.iter().map(|m| m.delta).sum::<Vec2>();
-        let mut transform = query.single_mut();
-        transform.rotate_around(Vec3::ZERO, Quat::from_rotation_y(-delta.x * 0.005));
-        transform.rotate_around(Vec3::ZERO, Quat::from_rotation_x(-delta.y * 0.005));
+        for event in mouse_motion_events.read() {
+            state.yaw -= event.delta.x * 0.01;
+            state.pitch += event.delta.y * 0.01;
+            state.pitch = state.pitch.clamp(-1.5, 1.5); // prevent flipping
+        }
     }
-}
 
-fn zoom_camera(
-    mut scroll_evr: EventReader<MouseWheel>,
-    mut query: Query<&mut Transform, With<MainCamera>>,
-) {
-    let mut transform = query.single_mut();
-    for ev in scroll_evr.iter() {
-        transform.translation += transform.forward() * ev.y * 0.1;
-    }
+    // Convert spherical to Cartesian
+    let x = state.radius * state.yaw.cos() * state.pitch.cos();
+    let y = state.radius * state.pitch.sin();
+    let z = state.radius * state.yaw.sin() * state.pitch.cos();
+
+    let position = Vec3::new(x, y, z);
+    camera_transform.translation = position;
+    camera_transform.look_at(Vec3::ZERO, Vec3::Y);
 }
-*/
