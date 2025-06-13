@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::input::mouse::{MouseMotion, MouseWheel};
 
 pub fn init_interface() {
     App::new()
@@ -8,6 +9,7 @@ pub fn init_interface() {
                 ..default()
             }
         ))
+        .insert_resource(CameraState::default())
         .add_systems(Startup, setup)
         .add_systems(Main, rotate_earth)
         .add_systems(Update, orbit_camera)
@@ -25,7 +27,6 @@ struct CameraState {
     yaw: f32,
     pitch: f32,
     radius: f32,
-    is_dragging: bool,
 }
 
 impl Default for CameraState {
@@ -34,7 +35,6 @@ impl Default for CameraState {
             yaw: 0.0,
             pitch: 0.0,
             radius: 4.0,
-            is_dragging: false,
         }
     }
 }
@@ -43,7 +43,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
     // Camera
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(-1.5, 3.5, 7.0).looking_at(Vec3::ZERO, Vec3::Y)
+        Transform::from_xyz(-1.5, 3.5, 7.0).looking_at(Vec3::ZERO, Vec3::Y),
+        OrbitCamera
     ));
 
     // Light
@@ -83,10 +84,7 @@ fn orbit_camera(
     mouse_button: Res<ButtonInput<MouseButton>>,
     mut camera_query: Query<&mut Transform, With<OrbitCamera>>,
     mut state: ResMut<CameraState>,
-    time: Res<Time>,
 ) {
-    let mut camera_transform = camera_query.single_mut();
-
     // Zoom
     for event in mouse_wheel_events.read() {
         state.radius -= event.y * 0.5;
@@ -96,7 +94,7 @@ fn orbit_camera(
     // Mouse drag to rotate
     if mouse_button.pressed(MouseButton::Left) {
         for event in mouse_motion_events.read() {
-            state.yaw -= event.delta.x * 0.01;
+            state.yaw += event.delta.x * 0.01;
             state.pitch += event.delta.y * 0.01;
             state.pitch = state.pitch.clamp(-1.5, 1.5); // prevent flipping
         }
@@ -108,6 +106,12 @@ fn orbit_camera(
     let z = state.radius * state.yaw.sin() * state.pitch.cos();
 
     let position = Vec3::new(x, y, z);
+    let mut camera_transform = camera_query
+        .single_mut()
+        .expect("Camera not found");
+
     camera_transform.translation = position;
     camera_transform.look_at(Vec3::ZERO, Vec3::Y);
 }
+
+
