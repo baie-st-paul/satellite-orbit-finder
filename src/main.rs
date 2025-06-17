@@ -1,11 +1,13 @@
 use reqwest::{self};
 use std::sync::Arc;
 use dotenv::dotenv;
+mod interface;
 
 fn main(){
     println!("Hello, world!");
     dotenv().ok();
-    send_request();
+   // send_request();
+    interface::init_interface();
 }
  
 fn send_request() {
