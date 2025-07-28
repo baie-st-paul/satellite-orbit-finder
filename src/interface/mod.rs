@@ -12,7 +12,7 @@ pub fn init_interface() {
         .insert_resource(CameraState::default())
         .add_systems(Startup, setup)
         .add_systems(Main, rotate_earth)
-        .add_systems(Update, orbit_camera,burn_debris_system)
+        .add_systems(Update, orbit_camera)
         .run();
 }
 
@@ -30,11 +30,11 @@ fn spawn_atmosphere_layers(
     let km_to_sim = 1.0 / 6371.0;
 
     let layers = [
-        (0.0, 12.0, Color::rgba(0.2, 0.7, 1.0, 0.05)), // Troposphere
-        (12.0, 50.0, Color::rgba(0.0, 0.5, 1.0, 0.04)), // Stratosphere
-        (50.0, 85.0, Color::rgba(1.0, 0.3, 0.0, 0.03)), // Mesosphere
-        (85.0, 600.0, Color::rgba(0.8, 0.1, 0.6, 0.02)), // Thermosphere
-        (600.0, 10000.0, Color::rgba(0.9, 0.9, 1.0, 0.01)), // Exosphere
+        (0.0, 12.0, Color::srgba(0.2, 0.7, 1.0, 0.05)), // Troposphere
+        (12.0, 50.0, Color::srgba(0.0, 0.5, 1.0, 0.04)), // Stratosphere
+        (50.0, 85.0, Color::srgba(1.0, 0.3, 0.0, 0.03)), // Mesosphere
+        (85.0, 600.0, Color::srgba(0.8, 0.1, 0.6, 0.02)), // Thermosphere
+        (600.0, 10000.0, Color::srgba(0.9, 0.9, 1.0, 0.01)), // Exosphere
     ];
 
     for (alt_min, alt_max, color) in layers {
@@ -43,24 +43,21 @@ fn spawn_atmosphere_layers(
         let radius = (inner + outer) / 2.0;
 
         commands.spawn((
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Icosphere {
-                    radius,
-                    subdivisions: 32,
-                })),
-                material: materials.add(StandardMaterial {
-                    base_color: color,
-                    unlit: true,
-                    alpha_mode: AlphaMode::Blend,
-                    ..default()
-                }),
+            Mesh3d( meshes.add(Sphere::new(
+                radius
+            ))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color: color,
+                unlit: true,
+                alpha_mode: AlphaMode::Blend,
                 ..default()
-            },
-            AtmosphereLayer,
+            })),
+            Transform::from_xyz(0.0, 0.0, 0.0),
+            AtmosphereLayer
         ));
     }
 }
-
+/* 
 #[derive(Component)]
 struct Debris;
 
@@ -81,7 +78,7 @@ fn burn_debris_system(
 }
 
 
-
+*/
 #[derive(Component)]
 struct OrbitCamera;
 
@@ -134,7 +131,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
     ));
 
     spawn_atmosphere_layers(commands, meshes, materials);
-
+    /* 
     //spawning debris for testing 
     commands.spawn((
     PbrBundle {
@@ -150,8 +147,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
         ..default()
     },
     Debris,
-));
-
+    ));
+*/
 }
 
 fn rotate_earth(mut query: Query<&mut Transform, With<Earth>>, time: Res<Time>) {
