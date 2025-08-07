@@ -30,11 +30,11 @@ fn spawn_atmosphere_layers(
     let km_to_sim = 1.0 / 6371.0;
 
     let layers = [
-        (0.0, 12.0, Color::srgba(0.2, 0.7, 1.0, 0.05)), // Troposphere
-        (12.0, 50.0, Color::srgba(0.0, 0.5, 1.0, 0.04)), // Stratosphere
-        (50.0, 85.0, Color::srgba(1.0, 0.3, 0.0, 0.03)), // Mesosphere
-        (85.0, 600.0, Color::srgba(0.8, 0.1, 0.6, 0.02)), // Thermosphere
-        (600.0, 10000.0, Color::srgba(0.9, 0.9, 1.0, 0.01)), // Exosphere
+        (1.0, 12.0, Color::srgba(0.2, 0.7, 1.0, 0.05)), // Troposphere
+        (12.1, 50.0, Color::srgba(0.0, 0.5, 1.0, 0.04)), // Stratosphere
+        (50.1, 85.0, Color::srgba(1.0, 0.3, 0.0, 0.03)), // Mesosphere
+        (85.1, 600.0, Color::srgba(0.8, 0.1, 0.6, 0.02)), // Thermosphere
+        (600.1, 10000.0, Color::srgba(0.9, 0.9, 1.0, 0.01)), // Exosphere
     ];
 
     for (alt_min, alt_max, color) in layers {
