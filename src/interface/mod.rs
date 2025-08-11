@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
+use std::f32::consts::{FRAC_PI_2, PI};
 
 pub fn init_interface() {
     App::new()
@@ -64,9 +65,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
     }));
 
     commands.spawn((
-        Mesh3d(meshes.add(Sphere::new(1.0))),
+        Mesh3d(meshes.add(Sphere::new(1.0).mesh().uv(16, 16))), // adjust uv for geometric resolution of sphere
         material,
-        Transform::from_xyz(0.0, 0.0, 0.0),
+        Transform::from_xyz(0.0, 0.0, 0.0).with_rotation(Quat::from_rotation_x(-FRAC_PI_2)),
         Earth,
     ));
 
