@@ -131,24 +131,21 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
     ));
 
     spawn_atmosphere_layers(commands, meshes, materials);
-    /* 
-    //spawning debris for testing 
     commands.spawn((
-    PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Icosphere {
-            radius: 0.02,
-            subdivisions: 8,
-        })),
-        material: materials.add(StandardMaterial {
-            base_color: Color::rgb(1.0, 0.2, 0.2),
+        PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Icosphere {
+                radius: 0.02,
+                subdivisions: 8,
+            })),
+            material: materials.add(StandardMaterial {
+                base_color: Color::rgb(1.0, 0.2, 0.2),
+                ..default()
+            }),
+            transform: Transform::from_xyz(0.0, 1.2, 0.0), // just inside burn zone
             ..default()
-        }),
-        transform: Transform::from_xyz(0.0, 1.2, 0.0), // just inside burn zone
-        ..default()
-    },
-    Debris,
+        },
+        Debris,
     ));
-*/
 }
 
 fn rotate_earth(mut query: Query<&mut Transform, With<Earth>>, time: Res<Time>) {
