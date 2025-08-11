@@ -10,6 +10,7 @@ pub fn init_interface() {
             }
         ))
         .insert_resource(CameraState::default())
+        .insert_resource(SecToSim::default())
         .add_systems(Startup, setup)
         .add_systems(Main, rotate_earth)
         .add_systems(Update, orbit_camera)
@@ -23,9 +24,9 @@ struct Earth;
 struct AtmosphereLayer;
 
 fn spawn_atmosphere_layers(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    commands: &mut Commands,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
     let km_to_sim = 1.0 / 6371.0;
 
@@ -57,7 +58,7 @@ fn spawn_atmosphere_layers(
         ));
     }
 }
-/* 
+
 #[derive(Component)]
 struct Debris;
 
@@ -78,9 +79,19 @@ fn burn_debris_system(
 }
 
 
-*/
+
 #[derive(Component)]
 struct OrbitCamera;
+
+// Rate of time in simulation
+#[derive(Resource)]
+struct SecToSim(f32);
+
+impl Default for SecToSim {
+    fn default() -> Self {
+        SecToSim(3000.0)
+    }
+}
 
 #[derive(Resource)]
 struct CameraState {
@@ -130,27 +141,25 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
         Earth,
     ));
 
-    spawn_atmosphere_layers(commands, meshes, materials);
+    spawn_atmosphere_layers(&mut commands, &mut meshes, &mut materials);
     commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Icosphere {
-                radius: 0.02,
-                subdivisions: 8,
-            })),
-            material: materials.add(StandardMaterial {
-                base_color: Color::rgb(1.0, 0.2, 0.2),
-                ..default()
-            }),
-            transform: Transform::from_xyz(0.0, 1.2, 0.0), // just inside burn zone
+        Mesh3d(meshes.add(Sphere::new(0.02).mesh().ico(8).unwrap())),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::srgb(1.0, 0.2, 0.2),
             ..default()
-        },
+        })),
+        Transform::from_xyz(0.0, 1.2, 0.0), // just inside burn zone
         Debris,
     ));
 }
 
-fn rotate_earth(mut query: Query<&mut Transform, With<Earth>>, time: Res<Time>) {
+// 1 : 3000 real life vs simulation
+// real life: 7.2921159 × 10−5 radians/second
+// about 30 seconds = 1 rotation in simulation,
+fn rotate_earth(mut query: Query<&mut Transform, With<Earth>>, time: Res<Time>, multiplier: Res<SecToSim>) {
+    let angular_velocity = 7.2921159e-5;
     for mut transform in &mut query {
-        transform.rotate_y(0.2 * time.delta_secs());
+        transform.rotate_y(multiplier.0 * angular_velocity * time.delta_secs());
     }
 }
 
@@ -189,5 +198,6 @@ fn orbit_camera(
     camera_transform.translation = position;
     camera_transform.look_at(Vec3::ZERO, Vec3::Y);
 }
+
 
 
