@@ -19,6 +19,9 @@ pub fn init_interface() {
         .run();
 }
 
+//earth mass = 5.97219e24 kg; G = 6.6743e-11; MU_M3_S2 = earth mass * G
+const GM: f32 = 3.986019e14;
+
 #[derive(Component)]
 struct Earth;
 
@@ -96,7 +99,7 @@ struct SecToSim(f32);
 
 impl Default for SecToSim {
     fn default() -> Self {
-        SecToSim(10.0)//SecToSim(3000.0)        // change this to make time faster in simulation. 1.0 = real time
+        SecToSim(100.0)//SecToSim(3000.0)        // change this to make time faster in simulation. 1.0 = real time
     }
 }
 
@@ -133,7 +136,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
         Transform::from_xyz(4.0, 8.0, 4.0)
     ));
 
-    /*// Earth sphere
+    // Earth sphere
     let texture = asset_server.load("earth_diffuse.png");
     let material = MeshMaterial3d(materials.add(StandardMaterial{
         base_color_texture: Some(texture),
@@ -146,7 +149,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
         material,
         Transform::from_xyz(0.0, 0.0, 0.0),
         Earth,
-    ));*/
+    ));
 
     spawn_atmosphere_layers(&mut commands, &mut meshes, &mut materials);
 
@@ -165,7 +168,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
         },
     ));
 
-    // a derbis with no orbit
+    // a derbis with unstable orbit
     commands.spawn((
         Mesh3d(meshes.add(Sphere::new(0.02).mesh().ico(8).unwrap())),
         MeshMaterial3d(materials.add(StandardMaterial {
@@ -175,7 +178,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
         Transform::from_xyz(0.0, 1.5, 0.0),
         Debris {
             mass: 1000.0,
-            velocity: Vec3::ZERO,
+            velocity: Vec3::new(0.0, 0.0, 4315.158),
             acceleration: Vec3::ZERO,
         },
     ));
@@ -190,7 +193,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
         Transform::from_xyz(0.0, 1.7, 0.0),
         Debris {
             mass: 1000.0,
-            velocity: Vec3::ZERO,
+            velocity: Vec3::new(0.0, 0.0,  3574.2028),
             acceleration: Vec3::ZERO,
         },
     ));
@@ -247,18 +250,13 @@ fn Orbit_to_force(altitude: f32){
 //todo
 }
 
-
-//earth mass = 5.97219e24 kg; G = 6.6743e-11; MU_M3_S2 = earth mass * G
-const MU_M3_S2: f32 = 3.986e14;
-
 // Calculate forces to update acceleration of debris based on position
 fn update_forces(mut query: Query <(&mut Transform, &mut Debris)>) {
  //gravity
  for (transform, mut debris) in &mut query {
     let r = 6371000.0 * (transform.translation.length_squared());   //in meters
-    let gm = 3.986019e14;
 
-    let ga = gm / (r * r); //acceleration from gravity
+    let ga = GM / (r * r); //acceleration from gravity
     debris.acceleration = -transform.translation.normalize_or_zero() * ga; //apply acceleration
  }
 
@@ -271,7 +269,7 @@ fn update_motion(mut query: Query <(&mut Transform, &mut Debris)>, time: Res<Tim
     for (mut transform, mut debris) in &mut query {
         let a = debris.acceleration;
         debris.velocity += a * dt;
-        transform.translation += debris.velocity * dt / 6371.0; //scale back to simulation unit
+        transform.translation += debris.velocity * dt / 6371000.0; //scale back to simulation unit
     }
 }
 
