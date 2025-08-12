@@ -96,7 +96,7 @@ struct SecToSim(f32);
 
 impl Default for SecToSim {
     fn default() -> Self {
-        SecToSim(10.0)//SecToSim(3000.0)
+        SecToSim(10.0)//SecToSim(3000.0)        // change this to make time faster in simulation. 1.0 = real time
     }
 }
 
