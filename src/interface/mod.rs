@@ -14,6 +14,8 @@ pub fn init_interface() {
         .add_systems(Startup, setup)
         .add_systems(Main, rotate_earth)
         .add_systems(Update, orbit_camera)
+        .add_systems(Update, (update_forces, update_motion.after(update_forces)))
+        .add_systems(Update, burn_debris_system)
         .run();
 }
 
@@ -60,7 +62,12 @@ fn spawn_atmosphere_layers(
 }
 
 #[derive(Component)]
-struct Debris;
+struct Debris {
+    mass: f32,
+    velocity: Vec3,
+    acceleration: Vec3,
+}
+
 
 fn burn_debris_system(
     mut commands: Commands,
@@ -89,7 +96,7 @@ struct SecToSim(f32);
 
 impl Default for SecToSim {
     fn default() -> Self {
-        SecToSim(3000.0)
+        SecToSim(10.0)//SecToSim(3000.0)
     }
 }
 
@@ -126,7 +133,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
         Transform::from_xyz(4.0, 8.0, 4.0)
     ));
 
-    // Earth sphere
+    /*// Earth sphere
     let texture = asset_server.load("earth_diffuse.png");
     let material = MeshMaterial3d(materials.add(StandardMaterial{
         base_color_texture: Some(texture),
@@ -139,9 +146,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
         material,
         Transform::from_xyz(0.0, 0.0, 0.0),
         Earth,
-    ));
+    ));*/
 
     spawn_atmosphere_layers(&mut commands, &mut meshes, &mut materials);
+
+    // a derbis in burn zone
     commands.spawn((
         Mesh3d(meshes.add(Sphere::new(0.02).mesh().ico(8).unwrap())),
         MeshMaterial3d(materials.add(StandardMaterial {
@@ -149,7 +158,41 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
             ..default()
         })),
         Transform::from_xyz(0.0, 1.2, 0.0), // just inside burn zone
-        Debris,
+        Debris {
+            mass: 1000.0,
+            velocity: Vec3::ZERO,
+            acceleration: Vec3::ZERO,
+        },
+    ));
+
+    // a derbis with no orbit
+    commands.spawn((
+        Mesh3d(meshes.add(Sphere::new(0.02).mesh().ico(8).unwrap())),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::srgb(1.0, 0.2, 0.2),
+            ..default()
+        })),
+        Transform::from_xyz(0.0, 1.5, 0.0),
+        Debris {
+            mass: 1000.0,
+            velocity: Vec3::ZERO,
+            acceleration: Vec3::ZERO,
+        },
+    ));
+
+    // a derbis in orbit
+    commands.spawn((
+        Mesh3d(meshes.add(Sphere::new(0.02).mesh().ico(8).unwrap())),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::srgb(1.0, 0.2, 0.2),
+            ..default()
+        })),
+        Transform::from_xyz(0.0, 1.7, 0.0),
+        Debris {
+            mass: 1000.0,
+            velocity: Vec3::ZERO,
+            acceleration: Vec3::ZERO,
+        },
     ));
 }
 
@@ -198,6 +241,40 @@ fn orbit_camera(
     camera_transform.translation = position;
     camera_transform.look_at(Vec3::ZERO, Vec3::Y);
 }
+
+// helper function to determine forces of a debris based on orbit
+fn Orbit_to_force(altitude: f32){
+//todo
+}
+
+
+//earth mass = 5.97219e24 kg; G = 6.6743e-11; MU_M3_S2 = earth mass * G
+const MU_M3_S2: f32 = 3.986e14;
+
+// Calculate forces to update acceleration of debris based on position
+fn update_forces(mut query: Query <(&mut Transform, &mut Debris)>) {
+ //gravity
+ for (transform, mut debris) in &mut query {
+    let r = 6371000.0 * (transform.translation.length_squared());   //in meters
+    let gm = 3.986019e14;
+
+    let ga = gm / (r * r); //acceleration from gravity
+    debris.acceleration = -transform.translation.normalize_or_zero() * ga; //apply acceleration
+ }
+
+ //other? resistance?
+}
+
+// Update motion of debris based on forces
+fn update_motion(mut query: Query <(&mut Transform, &mut Debris)>, time: Res<Time>, multiplier: Res<SecToSim>) {
+    let dt = time.delta_secs() * multiplier.0;
+    for (mut transform, mut debris) in &mut query {
+        let a = debris.acceleration;
+        debris.velocity += a * dt;
+        transform.translation += debris.velocity * dt / 6371.0; //scale back to simulation unit
+    }
+}
+
 
 
 
