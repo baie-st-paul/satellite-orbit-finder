@@ -273,6 +273,3 @@ fn update_motion(mut query: Query <(&mut Transform, &mut Debris)>, time: Res<Tim
     }
 }
 
-
-
-
