@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
-use std::f32::consts::{FRAC_PI_2, PI};
+use bevy::tasks::futures_lite::stream::AllFuture;
 
 pub fn init_interface() {
     App::new()
@@ -37,17 +37,15 @@ fn spawn_atmosphere_layers(
     let km_to_sim = 1.0 / 6371.0;
 
     let layers = [
-        (1.0, 12.0, Color::srgba(0.2, 0.7, 1.0, 0.05)), // Troposphere
-        (12.1, 50.0, Color::srgba(0.0, 0.5, 1.0, 0.04)), // Stratosphere
-        (50.1, 85.0, Color::srgba(1.0, 0.3, 0.0, 0.03)), // Mesosphere
-        (85.1, 600.0, Color::srgba(0.8, 0.1, 0.6, 0.02)), // Thermosphere
-        (600.1, 10000.0, Color::srgba(0.9, 0.9, 1.0, 0.01)), // Exosphere
+        (12.0, Color::srgba(0.2, 0.7, 1.0, 0.05)), // Troposphere
+        (50.0, Color::srgba(0.0, 0.5, 1.0, 0.04)), // Stratosphere
+        (85.0, Color::srgba(1.0, 0.3, 0.0, 0.03)), // Mesosphere
+        (600.0, Color::srgba(0.8, 0.1, 0.6, 0.02)), // Thermosphere
+        (10000.0, Color::srgba(0.9, 0.9, 1.0, 0.01)), // Exosphere
     ];
 
-    for (alt_min, alt_max, color) in layers {
-        let inner = (6371.0 + alt_min) * km_to_sim;
-        let outer = (6371.0 + alt_max) * km_to_sim;
-        let radius = (inner + outer) / 2.0;
+    for (alt, color) in layers {
+        let radius = (6371.0 + alt) * km_to_sim;
 
         commands.spawn((
             Mesh3d( meshes.add(Sphere::new(
@@ -146,9 +144,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut meshes: Res
     }));
 
     commands.spawn((
-        Mesh3d(meshes.add(Sphere::new(1.0).mesh().uv(16, 16))), // adjust uv for geometric resolution of sphere
+        Mesh3d(meshes.add(Sphere::new(1.0))),
         material,
-        Transform::from_xyz(0.0, 0.0, 0.0).with_rotation(Quat::from_rotation_x(-FRAC_PI_2)),
+        Transform::from_xyz(0.0, 0.0, 0.0),
         Earth,
     ));
 
