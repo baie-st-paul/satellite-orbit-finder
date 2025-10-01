@@ -52,7 +52,7 @@ fn spawn_atmosphere_layers(
         commands.spawn((
             Mesh3d( meshes.add(Sphere::new(
                 radius
-            ))),
+            ).mesh().ico(16).unwrap())),    //adjust ico(n) for number of division (smoother for larger n)
             MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: color,
                 unlit: true,
