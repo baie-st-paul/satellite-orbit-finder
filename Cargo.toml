@@ -12,7 +12,8 @@ opt-level = 1
 opt-level = 3
 
 [dependencies]
-reqwest ={ version = "0.12.18", features = ["blocking", "cookies"]}
-cookie_store ={ version = "*"}
-dotenv = "0.15.0"
-bevy = {version = "0.16"}
+reqwest ={ version = "0.12.23", features = ["blocking", "cookies"]} # for api requests
+cookie_store ={ version = "0.22.0"} # for storage of api requests
+dotenv = "0.15.0" # for stogare of api keys
+bevy = {version = "0.17"} # main 3d interface
+glam ={ version = "*"} # for f64 3D verctor
