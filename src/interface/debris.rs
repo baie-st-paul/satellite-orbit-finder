@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::interface::SecToSim;
+/* 
 pub fn setup(mut commands: Commands,mut meshes: ResMut<Assets<Mesh>>,mut materials: ResMut<Assets<StandardMaterial>>) {
     // a derbis in burn zone
     commands.spawn((
@@ -47,13 +48,9 @@ pub fn setup(mut commands: Commands,mut meshes: ResMut<Assets<Mesh>>,mut materia
         },
     ));
 }
-
+*/
 #[derive(Component)]
-pub struct Debris {
-    mass: f32,
-    velocity: Vec3,
-    acceleration: Vec3,
-}
+pub struct Debris;
 
 pub fn burn_debris_system(
     mut commands: Commands,
@@ -71,7 +68,7 @@ pub fn burn_debris_system(
     }
 }
 
-
+/* 
 // Calculate forces to update acceleration of debris based on position
 pub fn update_forces(mut query: Query <(&mut Transform, &mut Debris)>) {
  //gravity
@@ -94,3 +91,4 @@ pub fn update_motion(mut query: Query <(&mut Transform, &mut Debris)>, time: Res
         transform.translation += debris.velocity * dt / 6371000.0; //scale back to simulation unit
     }
 }
+*/
