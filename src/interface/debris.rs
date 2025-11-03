@@ -1,11 +1,8 @@
 use bevy::asset::RenderAssetUsages;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
-use chrono::{DateTime, Utc};
 use glam::DVec3;
 use sgp4::{Elements, Constants, MinutesSinceEpoch};
-
-use crate::interface::SecToSim;
 
 #[derive(Component)]
 pub struct Debris;
@@ -74,7 +71,6 @@ fn generate_orbit_points(elements: &Elements, constants: &Constants, samples: us
 pub struct Sgp4Sat {
     element: Elements,// compiled from TLE
     constants: Constants,
-    start_utc: DateTime<Utc>,  // sim reference start time
     time_scale: f64,           // sim seconds per real second
 }
 
@@ -86,7 +82,6 @@ impl Sgp4Sat {
         Ok(Self {
             element,
             constants,
-            start_utc: Utc::now(),
             time_scale,
         })
     }
@@ -102,11 +97,9 @@ const EARTH_RADIUS_KM: f32 = 6371.0;
 
 pub fn tle_drive_system(
     time: Res<Time>,
-    mut sat: ResMut<Sgp4Sat>,
+    sat: ResMut<Sgp4Sat>,
     mut q_debris: Query<&mut Transform, With<Debris>>,
 ) {
-    // how many real seconds passed
-    let dt_real = time.delta_secs_f64();
     // Minutes since epoch for this frame (relative to sim start)
     let mins = MinutesSinceEpoch(sat.minutes_since_epoch(time.elapsed_secs_f64()));
     // Propagate with SGP4
