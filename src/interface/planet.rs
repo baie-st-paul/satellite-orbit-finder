@@ -74,7 +74,3 @@ fn spawn_atmosphere_layers(
         ));
     }
 }
-
-
-//earth mass = 5.97219e24 kg; G = 6.6743e-11; MU_M3_S2 = earth mass * G
-pub const GM: f32 = 3.986019e14;

@@ -40,8 +40,8 @@ impl Default for CameraState {
 }
 
 pub fn orbit_camera(
-    mut mouse_motion_events: EventReader<MouseMotion>,
-    mut mouse_wheel_events: EventReader<MouseWheel>,
+    mut mouse_motion_events: MessageReader<MouseMotion>,
+    mut mouse_wheel_events: MessageReader<MouseWheel>,
     mouse_button: Res<ButtonInput<MouseButton>>,
     mut camera_query: Query<&mut Transform, With<OrbitCamera>>,
     mut state: ResMut<CameraState>,
