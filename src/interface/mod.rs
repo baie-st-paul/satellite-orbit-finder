@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+
 mod planet;
 mod camera;
 mod debris;
@@ -17,7 +18,6 @@ pub fn init_interface() {
         .add_systems(Startup, (planet::setup, camera::setup, debris::setup_tle))
         .add_systems(Main, planet::rotate_earth)
         .add_systems(Update, camera::orbit_camera)
-       // .add_systems(Update, (debris::update_forces, debris::update_motion.after(debris::update_forces)))
         .add_systems(Update, debris::burn_debris_system)
         .add_systems(Update, debris::tle_drive_system)
         .run();
