@@ -19,3 +19,5 @@ bevy = {version = "0.17.2"} # main 3d interface
 glam = {version = "0.30.8"} # for 3d vector
 sgp4 ={ version = "2.3.0"} # for parsing tle data
 chrono ={ version = "0.4.42" } # for UTC times
+serde ={ version = "1.0.228"}
+serde_json ={ version = "1.0.145"}
