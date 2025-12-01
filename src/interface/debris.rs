@@ -7,6 +7,8 @@ use glam::DVec3;
 use serde::Deserialize;
 use sgp4::{Elements, Constants, MinutesSinceEpoch};
 
+use crate::interface::commons::Sgp4Sat;
+
 #[derive(Component)]
 pub struct Debris;
 
@@ -75,34 +77,6 @@ pub struct SatVec {
     elements: Vec<Sgp4Sat>
 }
 
-#[derive(Clone)]
-struct Sgp4Sat {
-    element: Elements,// compiled from TLE
-    constants: Constants,
-    time_scale: f64,
-    entity_id: Entity         // sim seconds per real second
-}
-
-// Simple helper to build from 2 TLE lines
-impl Sgp4Sat {
-    fn from_tle_lines(name: &str, l1: &str, l2: &str, time_scale: f64, entity_id: Entity) -> Result<Self> {
-        let element = Elements::from_tle(Some(name.to_owned()), l1.as_bytes(), l2.as_bytes())?; // parse TLE
-        let constants = Constants::from_elements(&element).unwrap();
-        Ok(Self {
-            element,
-            constants,
-            time_scale,
-            entity_id
-        })
-    }
-
-    // minutes since the TLE epoch for the current sim time
-    fn minutes_since_epoch(&self, real_elapsed_secs: f64) -> f64 {
-        let sim_elapsed = real_elapsed_secs * self.time_scale;    // accelerate time
-        sim_elapsed / 60.0
-    }
-}
-
 const EARTH_RADIUS_KM: f32 = 6371.0;
 
 pub fn tle_drive_system(
@@ -135,12 +109,7 @@ pub fn setup_tle(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    /* 
-    // Example: ISS from CelesTrak “stations” group (paste current lines)
-    // Fetch TLEs from CelesTrak or Space-Track. (Examples linked below.)
-    let l1 = "1 00033U 60003  C 60280.33271408  .00001932 +00000-0 +00000-0 0  9994";
-    let l2 = "2 00033 051.2879 136.0668 0242757 196.7800 163.6100 15.38343354027003";
-*/
+
     let debris = send_request(10);
     let mut set_vect: Vec<Sgp4Sat> = Vec::new();
     for item in debris.iter() {

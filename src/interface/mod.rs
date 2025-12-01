@@ -3,6 +3,8 @@ use bevy::prelude::*;
 mod planet;
 mod camera;
 mod debris;
+mod commons;
+mod sat;
 
 
 pub fn init_interface() {
