@@ -1,4 +1,6 @@
-CREATE OR REPLACE TABLE tle_object (
+DROP TABLE IF EXISTS tle_object;
+
+CREATE TABLE tle_object (
     norad_cat_id            INTEGER PRIMARY KEY,
     ordinal                 INTEGER NOT NULL,
     comment                 VARCHAR(255) NOT NULL,
@@ -34,8 +36,9 @@ CREATE OR REPLACE TABLE tle_object (
     decayed                 BOOLEAN NOT NULL
 );
 
+DROP TABLE IF EXISTS sat_cat_object;
 
-CREATE OR REPLACE TABLE sat_cat_object (
+CREATE TABLE sat_cat_object (
     object_number        INTEGER PRIMARY KEY,
     intldes              VARCHAR(255) NOT NULL,
     norad_cat_id         INTEGER NOT NULL,
@@ -62,6 +65,6 @@ CREATE OR REPLACE TABLE sat_cat_object (
     object_id            VARCHAR(255) NOT NULL,
 
     FOREIGN KEY (norad_cat_id)
-        REFERENCES spacetrack_objects(norad_cat_id)
+        REFERENCES tle_object(norad_cat_id)
         ON UPDATE CASCADE ON DELETE CASCADE
 );
