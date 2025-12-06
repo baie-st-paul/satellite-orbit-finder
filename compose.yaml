@@ -1,17 +1,13 @@
 # Use postgres/example user/password credentials
 
 services:
-
-  db:
+  postgres:
     image: postgres
-    restart: always
-    shm_size: 128mb
+    container_name: postgres
     environment:
-      POSTGRES_PASSWORD: admin
-
-  adminer:
-    image: adminer
-    restart: always
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: inventory
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8'
     ports:
-      - 8081:8081
-
+      - "5433:5432"
